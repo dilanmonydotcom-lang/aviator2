@@ -1,34 +1,2059 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23059669'/%3E%3Cpath d='M32 15L47 43H37.5L32 32.5L26.5 43H17L32 15Z' fill='white'/%3E%3C/svg%3E"
-    />
-    <title>DroidVault — Android App Hub</title>
-    <meta
-      name="description"
-      content="Discover and download verified Android APK releases with screenshots, demo videos, and SHA-256 checksums."
-    />
-    <meta property="og:title" content="DroidVault — Android App Hub" />
-    <meta
-      property="og:description"
-      content="Discover and download verified Android APK releases with screenshots, demo videos, and SHA-256 checksums."
-    />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="bg-[#FAFAFA] text-[#09090B] antialiased selection:bg-emerald-600/15 selection:text-emerald-900">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DroidVault — Android App Hub</title>
+  <meta name="description" content="Discover curated Android apps, watch app preview videos, inspect release details, and download verified APK packages directly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #FAFAFA;
+      color: #09090B;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, h4 {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      letter-spacing: -0.02em;
+    }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-zinc-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <button id="brand-btn" type="button" class="text-lg font-extrabold tracking-tight text-zinc-950 hover:text-emerald-700 transition-colors whitespace-nowrap shrink-0">
+        DroidVault
+      </button>
+
+      <nav aria-label="Primary navigation" class="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-600">
+        <button data-nav="catalog" type="button" class="nav-link py-1 border-b-2 border-transparent hover:text-zinc-950 transition-colors whitespace-nowrap">Catalog</button>
+        <button data-nav="downloads" type="button" class="nav-link py-1 border-b-2 border-transparent hover:text-zinc-950 transition-colors whitespace-nowrap">My Downloads</button>
+      </nav>
+
+      <div class="flex items-center gap-2.5 shrink-0">
+        <!-- Admin button appears ONLY after unlocking with authorized credentials -->
+        <button id="admin-nav-btn" type="button" class="hidden inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-zinc-950 text-white hover:bg-zinc-800 transition-colors whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Admin
+        </button>
+
+        <button id="signin-open-btn" type="button" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors whitespace-nowrap">
+          Sign In
+        </button>
+
+        <div id="account-wrap" class="hidden relative">
+          <button id="account-menu-btn" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-zinc-900 bg-zinc-100 hover:bg-zinc-200/80 rounded-lg transition-colors whitespace-nowrap max-w-[150px] truncate">
+            Account
+          </button>
+          <div id="account-dropdown" class="hidden absolute right-0 mt-2 w-60 bg-white border border-zinc-200 rounded-xl shadow-lg p-3 z-50">
+            <div class="pb-2.5 mb-2.5 border-b border-zinc-100">
+              <p id="account-name" class="text-sm font-semibold text-zinc-950 truncate"></p>
+              <p id="account-email" class="text-xs text-zinc-500 truncate mt-0.5"></p>
+            </div>
+            <button id="signout-btn" type="button" class="w-full text-left px-3 py-2 text-xs font-medium text-zinc-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+              Sign Out
+            </button>
+          </div>
+        </div>
+
+        <button id="mobile-menu-btn" type="button" aria-label="Toggle menu" class="md:hidden p-2 text-zinc-700 hover:text-zinc-950 rounded-lg hover:bg-zinc-100">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="mobile-drawer" class="hidden md:hidden border-t border-zinc-200 bg-white px-4 py-3 space-y-1">
+      <button data-nav="catalog" type="button" class="w-full text-left px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 rounded-lg">Catalog</button>
+      <button data-nav="downloads" type="button" class="w-full text-left px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 rounded-lg">My Downloads</button>
+    </div>
+  </header>
+
+  <!-- Toast Notification -->
+  <div id="toast" role="status" class="hidden fixed bottom-5 right-5 z-50 bg-zinc-950 text-white text-xs font-medium px-4 py-3 rounded-lg shadow-lg border border-zinc-800"></div>
+
+  <!-- Email & Password Auth Modal (No Google/Gmail login, No email verification) -->
+  <div id="auth-modal" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/50 backdrop-blur-sm">
+    <div id="auth-modal-card" class="w-full max-w-md bg-white border border-zinc-200 rounded-xl shadow-xl p-6 sm:p-7 space-y-5">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 id="auth-title" class="text-xl font-bold text-zinc-950">Sign in to DroidVault</h2>
+          <p id="auth-subtitle" class="text-xs text-zinc-500 mt-1">Access your saved downloads and member account.</p>
+        </div>
+        <button id="auth-close-btn" type="button" aria-label="Close dialog" class="p-1.5 text-zinc-400 hover:text-zinc-900 rounded-lg hover:bg-zinc-100">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1 p-1 bg-zinc-100 rounded-lg">
+        <button id="mode-signin-btn" type="button" class="py-1.5 text-xs font-semibold rounded-md bg-white text-zinc-950 shadow-sm">Sign In</button>
+        <button id="mode-signup-btn" type="button" class="py-1.5 text-xs font-semibold rounded-md text-zinc-600 hover:text-zinc-950">Create Account</button>
+      </div>
+
+      <div id="auth-error-box" class="hidden px-3.5 py-2.5 text-xs text-red-800 bg-red-50 border border-red-200 rounded-lg leading-relaxed"></div>
+
+      <form id="auth-form" class="space-y-4">
+        <div id="auth-name-field" class="hidden">
+          <label for="auth-name-input" class="block text-xs font-medium text-zinc-700 mb-1">Full Name</label>
+          <input id="auth-name-input" type="text" maxlength="100" placeholder="Alex Perera" class="w-full px-3.5 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-600" />
+        </div>
+
+        <div>
+          <label for="auth-email-input" class="block text-xs font-medium text-zinc-700 mb-1">Email Address</label>
+          <input id="auth-email-input" type="email" required autocomplete="email" placeholder="you@example.com" class="w-full px-3.5 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-600" />
+        </div>
+
+        <div>
+          <label for="auth-password-input" class="block text-xs font-medium text-zinc-700 mb-1">Password</label>
+          <input id="auth-password-input" type="password" required minlength="6" autocomplete="current-password" placeholder="Enter your password" class="w-full px-3.5 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-600" />
+        </div>
+
+        <button id="auth-submit-btn" type="submit" class="w-full py-2.5 px-4 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 rounded-lg transition-colors">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Dynamic Content Root -->
+  <main id="app-root" class="flex-1"></main>
+
+  <!-- Quiet Public Footer (Zero Admin or Hosting References) -->
+  <footer class="bg-white border-t border-zinc-200 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+      <p>&copy; <span id="footer-year"></span> DroidVault — Android App Hub</p>
+      <div class="flex items-center gap-6">
+        <button data-nav="catalog" type="button" class="hover:text-zinc-950 transition-colors">Catalog</button>
+        <button data-nav="downloads" type="button" class="hover:text-zinc-950 transition-colors">My Downloads</button>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      updateProfile,
+      signOut,
+    } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      deleteDoc,
+      onSnapshot,
+      query,
+      where,
+      increment,
+      serverTimestamp,
+      writeBatch,
+    } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+
+    // =========================================================================
+    // Firebase Configuration
+    // =========================================================================
+    const FIREBASE_CONFIG = {
+      projectId: 'gen-lang-client-0390672167',
+      appId: '1:462083263085:web:18444c7877c95028f28d64',
+      apiKey: 'AIzaSyC2N1PN5ewRsMwJtYs52oG3UEBYaLuU44w',
+      authDomain: 'gen-lang-client-0390672167.firebaseapp.com',
+      storageBucket: 'gen-lang-client-0390672167.firebasestorage.app',
+      messagingSenderId: '462083263085',
+    };
+    const FIRESTORE_DB_ID = 'ai-studio-0fd48c53-680d-4169-9b42-5a54f66ede2a';
+
+    const PRIMARY_ADMIN_EMAIL = 'dilanaviator13@gmail.com';
+    const BOOTSTRAPPED_ADMIN_EMAILS = ['dilanaviator13@gmail.com', 'dilanytwon@gmail.com'];
+    const ADMIN_CREDENTIAL_DIGEST = 'f9f0fcedd12eda6645d14b448e84155409bb66cd747b0d7cf6f698cd11731753';
+    const ADMIN_UNLOCK_KEY = 'dv_portal_gate';
+    const GH_REPO_KEY = 'droidvault_gh_repo';
+    const CLOUDINARY_KEY = 'droidvault_cloudinary_cfg';
+
+    const CATEGORIES = ['All', 'Productivity', 'Utilities', 'Media & Audio', 'Developer Tools', 'Games', 'Education'];
+
+    const firebaseApp = initializeApp(FIREBASE_CONFIG);
+    const db = getFirestore(firebaseApp, FIRESTORE_DB_ID);
+    const auth = getAuth(firebaseApp);
+
+    // Starter preview apps displayed until first release is saved in Firestore
+    const STARTER_SAMPLE_APPS = [
+      {
+        id: 'notesync-pro',
+        name: 'NoteSync Pro',
+        tagline: 'Offline-first markdown notebook with instant local backup and clean split-screen editing.',
+        description: 'NoteSync Pro is built for fast capture without cloud lock-in. Organize study notes, daily checklists, and code snippets in encrypted local folders with instant full-text search and minimal battery usage.',
+        whatsNew: '• Refined reading typography with adaptive contrast\n• 40% faster full-text search across 5,000+ notes\n• Direct ZIP vault export compatible with Android 15 scoped storage',
+        version: '2.4.0',
+        packageId: 'com.droidvault.notesync',
+        category: 'Productivity',
+        minAndroid: 'Android 10+',
+        developer: 'DroidVault Labs',
+        iconUrl: '',
+        apkUrl: 'https://github.com/android/architecture-samples/releases',
+        apkFileName: 'NoteSyncPro-v2.4.0-universal.apk',
+        apkSizeBytes: 18450000,
+        apkSha256: '8f4c2b91d7e0a31f6c5a98b1e2349c7d881a0f3b6e2d4c91a7b5e3f1d9c0a412',
+        screenshots: [],
+        videoUrl: '',
+        videoFileName: '',
+        downloads: 1284,
+        featured: true,
+        published: true,
+        storageProvider: 'github-releases',
+        ownerUid: 'sample-preview',
+        isPreviewSample: true,
+      },
+      {
+        id: 'soundwave-eq',
+        name: 'SoundWave EQ',
+        tagline: '12-band parametric audio equalizer and lossless FLAC player for wired and Bluetooth headsets.',
+        description: 'Fine-tune every frequency band with studio-grade precision. SoundWave EQ includes AutoEQ headphone profiles, low-latency USB-C DAC passthrough, and gapless playback for high-resolution local libraries.',
+        whatsNew: '• Added 60+ new Bluetooth IEM AutoEQ presets\n• Reduced idle DSP memory footprint by 28%\n• Fixed lock-screen media artwork caching on Android 14+',
+        version: '3.1.2',
+        packageId: 'com.droidvault.soundwave',
+        category: 'Media & Audio',
+        minAndroid: 'Android 11+',
+        developer: 'Acoustics Lab',
+        iconUrl: '',
+        apkUrl: 'https://github.com/android/architecture-samples/releases',
+        apkFileName: 'SoundWaveEQ-v3.1.2-arm64.apk',
+        apkSizeBytes: 24900000,
+        apkSha256: '3a9e7c10f2b48d61e5c9a3f7d20b841e6a5c9f1d3e7b2a4c8d6f0e1a2b3c4d5e',
+        screenshots: [],
+        videoUrl: '',
+        videoFileName: '',
+        downloads: 892,
+        featured: false,
+        published: true,
+        storageProvider: 'github-releases',
+        ownerUid: 'sample-preview',
+        isPreviewSample: true,
+      },
+      {
+        id: 'filebeam-lan',
+        name: 'FileBeam LAN',
+        tagline: 'Zero-internet Wi-Fi Direct file transfer between Android, Windows, and macOS at gigabit speed.',
+        description: 'Transfer large APK packages, 4K videos, and project folders across devices on the same Wi-Fi network using a local QR code handshake. No cables, no compression, and no mobile data required.',
+        whatsNew: '• Added browser receiver mode so PCs need zero installation\n• Automatic SHA-256 verification after every transfer\n• Support for resuming interrupted multi-gigabyte transfers',
+        version: '1.8.5',
+        packageId: 'com.droidvault.filebeam',
+        category: 'Utilities',
+        minAndroid: 'Android 9+',
+        developer: 'DroidVault Labs',
+        iconUrl: '',
+        apkUrl: 'https://github.com/android/architecture-samples/releases',
+        apkFileName: 'FileBeamLAN-v1.8.5-universal.apk',
+        apkSizeBytes: 12300000,
+        apkSha256: 'c41d9a7e2b50f83c6d1a4e9b7c2f5a8d0e3b6c9a1f4d7e2b5c8a0f3d6e9b1c2a',
+        screenshots: [],
+        videoUrl: '',
+        videoFileName: '',
+        downloads: 645,
+        featured: false,
+        published: true,
+        storageProvider: 'cloud-link',
+        ownerUid: 'sample-preview',
+        isPreviewSample: true,
+      },
+    ];
+
+    // =========================================================================
+    // Application State
+    // =========================================================================
+    const state = {
+      user: null,
+      authReady: false,
+      isAdminUnlocked: (() => {
+        try { return sessionStorage.getItem(ADMIN_UNLOCK_KEY) === '1'; } catch { return false; }
+      })(),
+      page: 'catalog',
+      selectedAppId: null,
+      detailMediaTab: 'video',
+      detailShotIdx: 0,
+      firestoreApps: [],
+      loadingApps: true,
+      selectedCategory: 'All',
+      searchQuery: '',
+      downloadRecords: [],
+      loadingDownloads: false,
+      authMode: 'signin',
+      // Admin Studio state
+      adminSection: 'uploads',
+      storageTab: 'github',
+      githubRepo: localStorage.getItem(GH_REPO_KEY) || '',
+      ghReleases: [],
+      fetchingGh: false,
+      ghError: '',
+      cloudinary: (() => {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(CLOUDINARY_KEY) || '{}');
+          return { cloudName: parsed.cloudName || '', uploadPreset: parsed.uploadPreset || '' };
+        } catch {
+          return { cloudName: '', uploadPreset: '' };
+        }
+      })(),
+      editingId: null,
+      confirmDeleteId: null,
+      adminFeedback: null,
+      form: createEmptyForm(),
+    };
+
+    let unsubApps = null;
+    let unsubDownloads = null;
+
+    function createEmptyForm() {
+      return {
+        id: '',
+        name: '',
+        tagline: '',
+        description: '',
+        whatsNew: '',
+        version: '1.0.0',
+        packageId: 'com.droidvault.app',
+        category: 'Utilities',
+        minAndroid: 'Android 10+',
+        developer: 'DroidVault Studio',
+        iconUrl: '',
+        apkUrl: '',
+        apkFileName: '',
+        apkSizeBytes: 0,
+        apkSha256: '',
+        screenshots: ['', '', '', ''],
+        videoUrl: '',
+        videoFileName: '',
+        featured: false,
+        published: true,
+        storageProvider: 'github-releases',
+        githubRepo: localStorage.getItem(GH_REPO_KEY) || '',
+      };
+    }
+
+    // =========================================================================
+    // Helpers
+    // =========================================================================
+    function esc(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function safeHttps(url) {
+      const s = String(url || '').trim();
+      return /^https:\/\//i.test(s) ? s : '';
+    }
+
+    function formatBytes(bytes) {
+      const n = Number(bytes) || 0;
+      if (n <= 0) return 'N/A';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      const idx = Math.min(Math.floor(Math.log(n) / Math.log(1024)), units.length - 1);
+      const val = n / Math.pow(1024, idx);
+      return `${val >= 100 ? val.toFixed(0) : val.toFixed(1)} ${units[idx]}`;
+    }
+
+    function slugifyAppId(input) {
+      const clean = String(input || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 64);
+      return clean || `app-${Date.now()}`;
+    }
+
+    function normalizeRepoSlug(raw) {
+      return String(raw || '')
+        .trim()
+        .replace(/^https?:\/\/github\.com\//i, '')
+        .replace(/\/releases.*$/i, '')
+        .replace(/\.git$/i, '')
+        .replace(/^\/+|\/+$/g, '')
+        .slice(0, 160);
+    }
+
+    function normalizeDirectUrl(raw, kind) {
+      const trimmed = String(raw || '').trim();
+      if (!trimmed) return { url: '', detectedProvider: null };
+      const driveMatch =
+        trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i) ||
+        trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/i) ||
+        trimmed.match(/drive\.google\.com\/uc\?.*?id=([a-zA-Z0-9_-]+)/i);
+      if (driveMatch) {
+        const fid = driveMatch[1];
+        if (kind === 'image') return { url: `https://drive.google.com/thumbnail?id=${fid}&sz=w1600`, detectedProvider: 'google-drive' };
+        if (kind === 'video') return { url: `https://drive.google.com/file/d/${fid}/preview`, detectedProvider: 'google-drive' };
+        return { url: `https://drive.google.com/uc?export=download&id=${fid}`, detectedProvider: 'google-drive' };
+      }
+      if (/dropbox\.com\//i.test(trimmed)) {
+        try {
+          const u = new URL(trimmed);
+          u.searchParams.delete('dl');
+          u.searchParams.set('raw', '1');
+          return { url: u.toString(), detectedProvider: 'cloud-link' };
+        } catch {}
+      }
+      const ghBlob = trimmed.match(/^https:\/\/github\.com\/([^/]+\/[^/]+)\/blob\/(.+)$/i);
+      if (ghBlob) {
+        return { url: `https://raw.githubusercontent.com/${ghBlob[1]}/${ghBlob[2]}`, detectedProvider: 'github-releases' };
+      }
+      if (/github\.com\/[^/]+\/[^/]+\/releases\/download\//i.test(trimmed)) {
+        return { url: trimmed, detectedProvider: 'github-releases' };
+      }
+      if (/res\.cloudinary\.com\//i.test(trimmed)) {
+        return { url: trimmed, detectedProvider: 'cloudinary' };
+      }
+      return { url: trimmed, detectedProvider: 'cloud-link' };
+    }
+
+    function getVideoEmbedInfo(rawUrl) {
+      const trimmed = safeHttps(rawUrl);
+      if (!trimmed) return { type: 'none', src: '' };
+      const yt =
+        trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{6,})/i);
+      if (yt) {
+        return { type: 'youtube', src: `https://www.youtube.com/embed/${yt[1]}?rel=0` };
+      }
+      const gd = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+      if (gd) {
+        return { type: 'drive', src: `https://drive.google.com/file/d/${gd[1]}/preview` };
+      }
+      return { type: 'direct', src: trimmed };
+    }
+
+    async function sha256Hex(value) {
+      if (typeof crypto !== 'undefined' && crypto.subtle) {
+        const bytes = new TextEncoder().encode(value);
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+      return '';
+    }
+
+    async function verifyAdminCredentials(email, password) {
+      const normalized = `${String(email || '').trim().toLowerCase()}::${password}`;
+      try {
+        const hash = await sha256Hex(normalized);
+        return hash === ADMIN_CREDENTIAL_DIGEST;
+      } catch {
+        return false;
+      }
+    }
+
+    function isAuthorizedAdminUser() {
+      return Boolean(
+        state.user &&
+        state.user.email &&
+        BOOTSTRAPPED_ADMIN_EMAILS.includes(state.user.email.toLowerCase())
+      );
+    }
+
+    function persistAdminUnlock(unlocked) {
+      state.isAdminUnlocked = unlocked;
+      try {
+        if (unlocked) sessionStorage.setItem(ADMIN_UNLOCK_KEY, '1');
+        else sessionStorage.removeItem(ADMIN_UNLOCK_KEY);
+      } catch {}
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.add('hidden'), 3500);
+    }
+
+    function renderAppAvatar(app, sizeClass = 'w-14 h-14 rounded-xl') {
+      const icon = safeHttps(app.iconUrl);
+      if (icon) {
+        return `<img src="${esc(icon)}" alt="${esc(app.name)} icon" class="${sizeClass} object-cover border border-zinc-200 shrink-0 bg-zinc-100" loading="lazy" />`;
+      }
+      const initials = esc((app.name || 'DV').slice(0, 2).toUpperCase());
+      return `<div class="${sizeClass} bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-sm shrink-0">${initials}</div>`;
+    }
+
+    function getPublicApps() {
+      const live = state.firestoreApps.filter((a) => a.published);
+      if (live.length > 0) return live;
+      if (state.firestoreApps.length === 0) return STARTER_SAMPLE_APPS;
+      return [];
+    }
+
+    // =========================================================================
+    // Firebase Sync
+    // =========================================================================
+    async function syncUserProfileDoc(firebaseUser) {
+      if (!firebaseUser || !firebaseUser.email) return;
+      const userRef = doc(db, 'users', firebaseUser.uid);
+      try {
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) {
+          const safeName = (firebaseUser.displayName || firebaseUser.email.split('@')[0] || 'Member').slice(0, 100);
+          await setDoc(userRef, {
+            uid: firebaseUser.uid,
+            displayName: safeName,
+            email: firebaseUser.email.slice(0, 200),
+            role: 'user',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        }
+      } catch (err) {
+        console.error('Member profile sync skipped:', err);
+      }
+    }
+
+    function subscribeApps() {
+      if (unsubApps) unsubApps();
+      state.loadingApps = true;
+      const appsRef = collection(db, 'apps');
+      const appsQuery =
+        state.isAdminUnlocked && isAuthorizedAdminUser()
+          ? query(appsRef)
+          : query(appsRef, where('published', '==', true));
+
+      unsubApps = onSnapshot(
+        appsQuery,
+        (snapshot) => {
+          const docs = snapshot.docs.map((d) => {
+            const data = d.data();
+            return {
+              id: String(data.id || d.id),
+              name: String(data.name || ''),
+              tagline: String(data.tagline || ''),
+              description: String(data.description || ''),
+              whatsNew: String(data.whatsNew || ''),
+              version: String(data.version || '1.0.0'),
+              packageId: String(data.packageId || ''),
+              category: String(data.category || 'Utilities'),
+              minAndroid: String(data.minAndroid || 'Android 10+'),
+              developer: String(data.developer || 'DroidVault'),
+              iconUrl: String(data.iconUrl || ''),
+              apkUrl: String(data.apkUrl || ''),
+              apkFileName: String(data.apkFileName || 'app.apk'),
+              apkSizeBytes: Number(data.apkSizeBytes || 0),
+              apkSha256: String(data.apkSha256 || ''),
+              screenshots: Array.isArray(data.screenshots) ? data.screenshots.map(String).slice(0, 4) : [],
+              videoUrl: String(data.videoUrl || ''),
+              videoFileName: String(data.videoFileName || ''),
+              downloads: Number(data.downloads || 0),
+              featured: Boolean(data.featured),
+              published: Boolean(data.published),
+              storageProvider: String(data.storageProvider || 'github-releases'),
+              githubRepo: data.githubRepo ? String(data.githubRepo) : '',
+              ownerUid: String(data.ownerUid || ''),
+            };
+          });
+          docs.sort((a, b) => (a.featured !== b.featured ? (a.featured ? -1 : 1) : b.downloads - a.downloads));
+          state.firestoreApps = docs;
+          state.loadingApps = false;
+          render();
+        },
+        (err) => {
+          console.error('Firestore catalog error:', err);
+          state.loadingApps = false;
+          render();
+        }
+      );
+    }
+
+    function subscribeDownloads() {
+      if (unsubDownloads) unsubDownloads();
+      if (!state.user) {
+        state.downloadRecords = [];
+        state.loadingDownloads = false;
+        return;
+      }
+      state.loadingDownloads = true;
+      const q = query(
+        collection(db, 'users', state.user.uid, 'downloads'),
+        where('userId', '==', state.user.uid)
+      );
+      unsubDownloads = onSnapshot(
+        q,
+        (snap) => {
+          const list = snap.docs.map((d) => {
+            const data = d.data();
+            return {
+              id: d.id,
+              appId: String(data.appId || ''),
+              appName: String(data.appName || ''),
+              version: String(data.version || ''),
+              downloadedAt: data.downloadedAt || null,
+            };
+          });
+          list.sort((a, b) => {
+            const aMs = a.downloadedAt && typeof a.downloadedAt.toMillis === 'function' ? a.downloadedAt.toMillis() : 0;
+            const bMs = b.downloadedAt && typeof b.downloadedAt.toMillis === 'function' ? b.downloadedAt.toMillis() : 0;
+            return bMs - aMs;
+          });
+          state.downloadRecords = list;
+          state.loadingDownloads = false;
+          if (state.page === 'downloads') render();
+        },
+        (err) => {
+          console.error('Downloads listener error:', err);
+          state.loadingDownloads = false;
+          if (state.page === 'downloads') render();
+        }
+      );
+    }
+
+    // =========================================================================
+    // Routing & Header Sync
+    // =========================================================================
+    function parseHash() {
+      const raw = window.location.hash.replace(/^#/, '');
+      if (raw.startsWith('app/')) return { page: 'detail', appId: decodeURIComponent(raw.slice(4)) };
+      if (raw === 'downloads') return { page: 'downloads', appId: null };
+      if (raw === 'admin' && state.isAdminUnlocked) return { page: 'admin', appId: null };
+      return { page: 'catalog', appId: null };
+    }
+
+    function navigate(page, appId = null) {
+      if (page === 'admin' && !state.isAdminUnlocked) {
+        page = 'catalog';
+      }
+      state.page = page;
+      state.selectedAppId = appId;
+      if (page === 'detail' && appId) {
+        const target = [...state.firestoreApps, ...getPublicApps()].find((a) => a.id === appId);
+        state.detailShotIdx = 0;
+        state.detailMediaTab = target && getVideoEmbedInfo(target.videoUrl).type !== 'none' ? 'video' : 'screenshots';
+        window.location.hash = `app/${encodeURIComponent(appId)}`;
+      } else {
+        window.location.hash = page;
+      }
+      document.getElementById('mobile-drawer').classList.add('hidden');
+      document.getElementById('account-dropdown').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      render();
+    }
+
+    function updateHeader() {
+      const adminBtn = document.getElementById('admin-nav-btn');
+      const signinBtn = document.getElementById('signin-open-btn');
+      const accountWrap = document.getElementById('account-wrap');
+      const accountBtn = document.getElementById('account-menu-btn');
+      const accountName = document.getElementById('account-name');
+      const accountEmail = document.getElementById('account-email');
+
+      if (state.isAdminUnlocked) {
+        adminBtn.classList.remove('hidden');
+        adminBtn.className = state.page === 'admin'
+          ? 'inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-emerald-600 text-white transition-colors whitespace-nowrap'
+          : 'inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-zinc-950 text-white hover:bg-zinc-800 transition-colors whitespace-nowrap';
+      } else {
+        adminBtn.classList.add('hidden');
+      }
+
+      if (state.user || state.isAdminUnlocked) {
+        const displayName = state.user?.displayName || state.user?.email?.split('@')[0] || 'Account';
+        signinBtn.classList.add('hidden');
+        accountWrap.classList.remove('hidden');
+        accountBtn.textContent = displayName;
+        accountName.textContent = displayName;
+        accountEmail.textContent = state.user?.email || '';
+      } else {
+        signinBtn.classList.remove('hidden');
+        accountWrap.classList.add('hidden');
+      }
+
+      document.querySelectorAll('.nav-link').forEach((btn) => {
+        const target = btn.getAttribute('data-nav');
+        const active = state.page === target || (state.page === 'detail' && target === 'catalog');
+        btn.className = active
+          ? 'nav-link py-1 border-b-2 border-emerald-600 text-zinc-950 font-semibold transition-colors whitespace-nowrap'
+          : 'nav-link py-1 border-b-2 border-transparent hover:text-zinc-950 hover:border-zinc-300 transition-colors whitespace-nowrap';
+      });
+    }
+
+    // =========================================================================
+    // Actions: Download APK & Auth
+    // =========================================================================
+    async function handleDownloadApk(app) {
+      const apkHref = safeHttps(app.apkUrl);
+      if (!apkHref) {
+        showToast('Invalid APK download link.');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = apkHref;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.download = app.apkFileName || 'app.apk';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      if (!app.isPreviewSample && state.user) {
+        try {
+          await updateDoc(doc(db, 'apps', app.id), { downloads: increment(1) });
+          const recId = `${app.id}-${Date.now()}`.slice(0, 128);
+          await setDoc(doc(db, 'users', state.user.uid, 'downloads', recId), {
+            userId: state.user.uid,
+            appId: app.id,
+            appName: app.name.slice(0, 120),
+            version: app.version.slice(0, 40),
+            downloadedAt: serverTimestamp(),
+          });
+        } catch (err) {
+          console.error('Download record skipped:', err);
+        }
+      }
+      showToast(`Starting download for ${app.apkFileName}`);
+    }
+
+    function openAuthModal(mode = 'signin') {
+      state.authMode = mode;
+      syncAuthModalMode();
+      document.getElementById('auth-error-box').classList.add('hidden');
+      document.getElementById('auth-modal').classList.remove('hidden');
+      document.getElementById('auth-email-input').focus();
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      document.getElementById('auth-password-input').value = '';
+      document.getElementById('auth-error-box').classList.add('hidden');
+    }
+
+    function syncAuthModalMode() {
+      const isSignup = state.authMode === 'signup';
+      document.getElementById('auth-title').textContent = isSignup ? 'Create an account' : 'Sign in to DroidVault';
+      document.getElementById('auth-subtitle').textContent = isSignup
+        ? 'Sign up with your email and password in seconds.'
+        : 'Access your saved downloads and member account.';
+      document.getElementById('auth-name-field').classList.toggle('hidden', !isSignup);
+      document.getElementById('auth-name-input').required = isSignup;
+      document.getElementById('auth-submit-btn').textContent = isSignup ? 'Create Account' : 'Sign In';
+      document.getElementById('mode-signin-btn').className = !isSignup
+        ? 'py-1.5 text-xs font-semibold rounded-md bg-white text-zinc-950 shadow-sm'
+        : 'py-1.5 text-xs font-semibold rounded-md text-zinc-600 hover:text-zinc-950';
+      document.getElementById('mode-signup-btn').className = isSignup
+        ? 'py-1.5 text-xs font-semibold rounded-md bg-white text-zinc-950 shadow-sm'
+        : 'py-1.5 text-xs font-semibold rounded-md text-zinc-600 hover:text-zinc-950';
+    }
+
+    function friendlyAuthError(err) {
+      const code = err && err.code ? String(err.code) : '';
+      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/invalid-login-credentials') {
+        return 'Incorrect email or password. Please try again.';
+      }
+      if (code === 'auth/user-not-found') return 'No account found with this email. Switch to Create Account to sign up.';
+      if (code === 'auth/email-already-in-use') return 'An account with this email already exists. Sign in instead.';
+      if (code === 'auth/weak-password') return 'Password must be at least 6 characters long.';
+      if (code === 'auth/invalid-email') return 'Please enter a valid email address.';
+      if (code === 'auth/operation-not-allowed' || code === 'auth/configuration-not-found') {
+        return 'Email & Password sign-in is not yet enabled in Firebase Console.';
+      }
+      return err && err.message ? err.message : 'Unable to sign in right now.';
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('auth-error-box');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      errBox.classList.add('hidden');
+
+      const email = document.getElementById('auth-email-input').value.trim();
+      const password = document.getElementById('auth-password-input').value;
+      const displayName = document.getElementById('auth-name-input').value.trim();
+
+      if (!email || !password) {
+        errBox.textContent = 'Please enter both your email and password.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Please wait...';
+
+      try {
+        const matchedAdmin = await verifyAdminCredentials(email, password);
+
+        if (state.authMode === 'signin') {
+          try {
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            if (cred.user) await syncUserProfileDoc(cred.user);
+            persistAdminUnlock(matchedAdmin);
+            closeAuthModal();
+            if (matchedAdmin) {
+              subscribeApps();
+              navigate('admin');
+            } else {
+              render();
+            }
+            return;
+          } catch (signErr) {
+            if (matchedAdmin) {
+              try {
+                const created = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(created.user, { displayName: 'Dilan' });
+                await syncUserProfileDoc(created.user);
+              } catch {}
+              persistAdminUnlock(true);
+              closeAuthModal();
+              subscribeApps();
+              navigate('admin');
+              return;
+            }
+            errBox.textContent = friendlyAuthError(signErr);
+            errBox.classList.remove('hidden');
+          }
+        } else {
+          try {
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            const cleanName = displayName.slice(0, 100) || email.split('@')[0];
+            if (cleanName) await updateProfile(cred.user, { displayName: cleanName });
+            await syncUserProfileDoc(cred.user);
+            persistAdminUnlock(matchedAdmin);
+            closeAuthModal();
+            if (matchedAdmin) {
+              subscribeApps();
+              navigate('admin');
+            } else {
+              render();
+            }
+            return;
+          } catch (upErr) {
+            if (matchedAdmin) {
+              try {
+                const signed = await signInWithEmailAndPassword(auth, email, password);
+                if (signed.user) await syncUserProfileDoc(signed.user);
+              } catch {}
+              persistAdminUnlock(true);
+              closeAuthModal();
+              subscribeApps();
+              navigate('admin');
+              return;
+            }
+            errBox.textContent = friendlyAuthError(upErr);
+            errBox.classList.remove('hidden');
+          }
+        }
+      } finally {
+        submitBtn.disabled = false;
+        syncAuthModalMode();
+      }
+    }
+
+    // =========================================================================
+    // Views: Catalog, App Detail, My Downloads, Admin Panel
+    // =========================================================================
+    function renderCatalogView() {
+      const publicApps = getPublicApps();
+      const featuredApp = publicApps.find((a) => a.featured) || publicApps[0] || null;
+      const totalDownloads = publicApps.reduce((s, a) => s + (a.downloads || 0), 0);
+      const videoCount = publicApps.filter((a) => Boolean(a.videoUrl)).length;
+      const q = state.searchQuery.trim().toLowerCase();
+      const filtered = publicApps.filter((app) => {
+        if (state.selectedCategory !== 'All' && app.category !== state.selectedCategory) return false;
+        if (!q) return true;
+        return (
+          app.name.toLowerCase().includes(q) ||
+          app.tagline.toLowerCase().includes(q) ||
+          app.packageId.toLowerCase().includes(q) ||
+          app.developer.toLowerCase().includes(q)
+        );
+      });
+
+      return `
+        <div>
+          <!-- Hero -->
+          <section class="bg-white border-b border-zinc-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                  <div class="text-xs font-medium text-zinc-500 flex flex-wrap items-center gap-2">
+                    <span class="text-emerald-700 font-semibold">Verified Android Releases</span>
+                    <span>&middot;</span>
+                    <span>Direct APK Downloads</span>
+                    <span>&middot;</span>
+                    <span>Video Previews</span>
+                  </div>
+                  <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-zinc-950 leading-[1.08]">
+                    Clean Android apps, ready for direct download.
+                  </h1>
+                  <p class="text-base text-zinc-600 leading-relaxed max-w-xl">
+                    Explore curated Android builds with full app walkthrough videos, high-resolution screenshots, release changelogs, and SHA-256 package verification.
+                  </p>
+                  <div class="flex flex-wrap items-center gap-3 pt-1">
+                    <a href="#catalog-grid" class="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">
+                      Browse Apps &rarr;
+                    </a>
+                    ${!state.user ? `
+                      <button type="button" data-open-auth="signin" class="px-5 py-3 text-sm font-semibold text-zinc-800 bg-zinc-100 hover:bg-zinc-200/80 rounded-lg transition-colors">
+                        Sign In
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="lg:col-span-5">
+                  <div class="rounded-2xl border border-zinc-200 bg-zinc-950 text-white p-6 sm:p-8 space-y-5">
+                    <div class="flex items-center justify-between text-xs text-zinc-400 font-mono">
+                      <span>ANDROID APK VAULT</span>
+                      <span class="text-emerald-400">DIRECT HTTPS</span>
+                    </div>
+                    <div class="space-y-3">
+                      ${publicApps.slice(0, 3).map((a) => `
+                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+                          <div class="min-w-0">
+                            <p class="text-sm font-semibold text-white truncate">${esc(a.name)}</p>
+                            <p class="text-[11px] font-mono text-zinc-400">v${esc(a.version)} &middot; ${formatBytes(a.apkSizeBytes)}</p>
+                          </div>
+                          <span class="text-[11px] font-semibold text-emerald-400 shrink-0">${a.videoUrl ? 'Video + APK' : 'APK Ready'}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-10 pt-8 border-t border-zinc-200 grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                  <p class="text-xs text-zinc-500">Available Apps</p>
+                  <p class="text-2xl font-bold font-mono text-zinc-950 mt-1">${publicApps.length}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-zinc-500">Total Downloads</p>
+                  <p class="text-2xl font-bold font-mono text-zinc-950 mt-1">${totalDownloads.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-zinc-500">Video Walkthroughs</p>
+                  <p class="text-2xl font-bold font-mono text-zinc-950 mt-1">${videoCount}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-zinc-500">Package Integrity</p>
+                  <p class="text-lg sm:text-xl font-bold text-zinc-950 mt-1.5">SHA-256 Verified</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Featured Release -->
+          ${featuredApp ? `
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+              <div class="bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="flex items-start sm:items-center gap-5 min-w-0">
+                  ${renderAppAvatar(featuredApp, 'w-16 h-16 sm:w-20 sm:h-20 rounded-2xl')}
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mb-1">
+                      <span class="font-semibold text-emerald-700">Featured Release</span>
+                      <span>&middot;</span>
+                      <span>${esc(featuredApp.category)}</span>
+                      <span>&middot;</span>
+                      <span class="font-mono">v${esc(featuredApp.version)}</span>
+                      <span>&middot;</span>
+                      <span class="font-mono">${formatBytes(featuredApp.apkSizeBytes)}</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-zinc-950 truncate">${esc(featuredApp.name)}</h2>
+                    <p class="text-sm text-zinc-600 mt-1 max-w-2xl line-clamp-2">${esc(featuredApp.tagline)}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <button type="button" data-open-app="${esc(featuredApp.id)}" class="px-4 py-2.5 text-sm font-semibold text-zinc-800 bg-zinc-100 hover:bg-zinc-200/80 rounded-lg transition-colors whitespace-nowrap">
+                    View Details
+                  </button>
+                  <button type="button" data-download-app="${esc(featuredApp.id)}" class="px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors whitespace-nowrap">
+                    Download APK
+                  </button>
+                </div>
+              </div>
+            </section>
+          ` : ''}
+
+          <!-- Catalog Grid -->
+          <section id="catalog-grid" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-bold text-zinc-950">Release Catalog</h2>
+                <p class="text-sm text-zinc-500 mt-0.5">Select any app to watch its preview video, inspect screenshots, and download the APK.</p>
+              </div>
+              <input id="catalog-search" type="search" value="${esc(state.searchQuery)}" placeholder="Search apps or package ID..." class="w-full md:w-72 px-4 py-2 text-sm bg-white border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-600" />
+            </div>
+
+            <div class="flex items-center gap-1 p-1 bg-zinc-100 rounded-lg overflow-x-auto max-w-full">
+              ${CATEGORIES.map((cat) => `
+                <button type="button" data-cat="${esc(cat)}" class="px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                  state.selectedCategory === cat ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600 hover:text-zinc-950'
+                }">${esc(cat)}</button>
+              `).join('')}
+            </div>
+
+            ${state.loadingApps ? `
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="h-52 bg-white border border-zinc-200 rounded-xl animate-pulse"></div>
+                <div class="h-52 bg-white border border-zinc-200 rounded-xl animate-pulse"></div>
+                <div class="h-52 bg-white border border-zinc-200 rounded-xl animate-pulse"></div>
+              </div>
+            ` : filtered.length === 0 ? `
+              <div class="bg-white border border-zinc-200 rounded-xl p-12 text-center space-y-3">
+                <p class="text-base font-semibold text-zinc-950">No matching apps found</p>
+                <p class="text-sm text-zinc-500">Try clearing your search query or switching back to All categories.</p>
+                <button id="reset-filters-btn" type="button" class="mt-2 px-4 py-2 text-xs font-semibold text-white bg-zinc-950 hover:bg-zinc-800 rounded-lg">Reset Filters</button>
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ${filtered.map((app) => `
+                  <article data-open-app="${esc(app.id)}" class="group bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl p-6 flex flex-col justify-between transition-transform duration-150 hover:-translate-y-0.5 cursor-pointer">
+                    <div>
+                      <div class="flex items-start gap-4">
+                        ${renderAppAvatar(app, 'w-14 h-14 rounded-xl')}
+                        <div class="min-w-0 flex-1">
+                          <p class="text-xs text-zinc-500 truncate">${esc(app.category)} &middot; ${esc(app.developer)}</p>
+                          <h3 class="text-base font-bold text-zinc-950 group-hover:text-emerald-700 transition-colors truncate mt-0.5">${esc(app.name)}</h3>
+                          <p class="text-xs font-mono text-zinc-500 mt-1">v${esc(app.version)} &middot; ${formatBytes(app.apkSizeBytes)} &middot; ${esc(app.minAndroid)}</p>
+                        </div>
+                      </div>
+                      <p class="text-sm text-zinc-600 leading-relaxed mt-4 line-clamp-2">${esc(app.tagline)}</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-zinc-100 flex items-center justify-between gap-3">
+                      <span class="text-xs ${app.videoUrl ? 'text-emerald-700 font-medium' : 'text-zinc-500'}">
+                        ${app.videoUrl ? 'Video preview' : 'Verified APK'}
+                      </span>
+                      <button type="button" data-download-app="${esc(app.id)}" class="px-3.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white rounded-lg transition-colors whitespace-nowrap">
+                        Download
+                      </button>
+                    </div>
+                  </article>
+                `).join('')}
+              </div>
+            `}
+          </section>
+        </div>
+      `;
+    }
+
+    function renderDetailView() {
+      const app =
+        state.firestoreApps.find((a) => a.id === state.selectedAppId) ||
+        getPublicApps().find((a) => a.id === state.selectedAppId);
+
+      if (!app) {
+        return `
+          <div class="max-w-3xl mx-auto px-4 py-16 text-center">
+            <div class="bg-white border border-zinc-200 rounded-xl p-10 space-y-4">
+              <h1 class="text-xl font-bold text-zinc-950">App not found</h1>
+              <button data-nav="catalog" type="button" class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg">Back to Catalog</button>
+            </div>
+          </div>
+        `;
+      }
+
+      const videoInfo = getVideoEmbedInfo(app.videoUrl);
+      const hasVideo = videoInfo.type !== 'none';
+      const shots = (app.screenshots || []).map(safeHttps).filter(Boolean);
+      const hasShots = shots.length > 0;
+      const showVideo = (state.detailMediaTab === 'video' && hasVideo) || (!hasShots && hasVideo);
+
+      let mediaHtml = '';
+      if (hasVideo || hasShots) {
+        let player = '';
+        if (showVideo) {
+          player = videoInfo.type === 'direct'
+            ? `<video src="${esc(videoInfo.src)}" controls playsinline class="w-full h-full object-contain bg-black"></video>`
+            : `<iframe src="${esc(videoInfo.src)}" title="${esc(app.name)} video" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        } else {
+          const activeShot = shots[state.detailShotIdx] || shots[0];
+          player = `<img src="${esc(activeShot)}" alt="${esc(app.name)} screenshot" class="w-full h-full object-cover bg-zinc-100" />`;
+        }
+
+        mediaHtml = `
+          <section class="space-y-4">
+            <div class="flex items-center justify-between gap-4">
+              <h2 class="text-sm font-semibold text-zinc-900">${showVideo ? 'App Video Preview' : 'Screenshots'}</h2>
+              ${hasVideo && hasShots ? `
+                <div class="inline-flex items-center gap-1 p-1 bg-zinc-100 rounded-lg">
+                  <button type="button" data-media-tab="video" class="px-3 py-1 text-xs font-semibold rounded-md ${showVideo ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600'}">App Video</button>
+                  <button type="button" data-media-tab="screenshots" class="px-3 py-1 text-xs font-semibold rounded-md ${!showVideo ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600'}">Screenshots (${shots.length})</button>
+                </div>
+              ` : ''}
+            </div>
+            <div class="aspect-video w-full rounded-xl overflow-hidden bg-zinc-950 border border-zinc-200">${player}</div>
+            ${!showVideo && shots.length > 1 ? `
+              <div class="grid grid-cols-4 gap-3">
+                ${shots.map((s, i) => `
+                  <button type="button" data-shot-idx="${i}" class="aspect-video rounded-lg overflow-hidden border ${state.detailShotIdx === i ? 'border-emerald-600 ring-2 ring-emerald-600/20' : 'border-zinc-200 opacity-75 hover:opacity-100'}">
+                    <img src="${esc(s)}" alt="Thumbnail ${i + 1}" class="w-full h-full object-cover" />
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
+          </section>
+        `;
+      }
+
+      return `
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          <button data-nav="catalog" type="button" class="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 hover:text-zinc-950 mb-8">
+            &larr; Back to Catalog
+          </button>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            <div class="lg:col-span-8 space-y-10">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+                ${renderAppAvatar(app, 'w-20 h-20 rounded-2xl')}
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mb-1.5">
+                    <span class="font-medium text-zinc-700">${esc(app.category)}</span>
+                    <span>&middot;</span>
+                    <span>${esc(app.developer)}</span>
+                    <span>&middot;</span>
+                    <span class="font-mono">v${esc(app.version)}</span>
+                    ${hasVideo ? `<span>&middot;</span><span class="font-medium text-emerald-700">Video Preview Available</span>` : ''}
+                  </div>
+                  <h1 class="text-2xl sm:text-3xl font-bold text-zinc-950">${esc(app.name)}</h1>
+                  <p class="text-base text-zinc-600 mt-1.5 leading-relaxed">${esc(app.tagline)}</p>
+                </div>
+              </div>
+
+              ${mediaHtml}
+
+              <section class="pt-8 border-t border-zinc-200 space-y-3">
+                <h2 class="text-lg font-semibold text-zinc-950">About this app</h2>
+                <p class="text-sm sm:text-base text-zinc-600 leading-relaxed whitespace-pre-line">${esc(app.description || 'No description provided for this release.')}</p>
+              </section>
+
+              ${app.whatsNew ? `
+                <section class="pt-8 border-t border-zinc-200 space-y-3">
+                  <h2 class="text-lg font-semibold text-zinc-950">What's new in v${esc(app.version)}</h2>
+                  <p class="text-sm text-zinc-600 leading-relaxed whitespace-pre-line">${esc(app.whatsNew)}</p>
+                </section>
+              ` : ''}
+            </div>
+
+            <aside class="lg:col-span-4 lg:sticky lg:top-24">
+              <div class="bg-white border border-zinc-200 rounded-xl p-6 space-y-6">
+                <div>
+                  <p class="text-xs font-medium text-zinc-500">Direct Android Package</p>
+                  <p class="text-base font-bold text-zinc-950 mt-1 break-all font-mono">${esc(app.apkFileName)}</p>
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-2 font-mono">
+                    <span>${formatBytes(app.apkSizeBytes)}</span>
+                    <span>&middot;</span>
+                    <span>${esc(app.minAndroid)}</span>
+                    <span>&middot;</span>
+                    <span>${(app.downloads || 0).toLocaleString()} downloads</span>
+                  </div>
+                </div>
+
+                <button type="button" data-download-app="${esc(app.id)}" class="w-full px-5 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">
+                  Download APK
+                </button>
+
+                ${safeHttps(app.apkUrl) ? `
+                  <a href="${esc(safeHttps(app.apkUrl))}" target="_blank" rel="noopener noreferrer" class="block text-center text-xs font-medium text-zinc-600 hover:text-zinc-950">
+                    Open direct download link &nearr;
+                  </a>
+                ` : ''}
+
+                <dl class="pt-5 border-t border-zinc-100 space-y-3 text-xs">
+                  <div class="flex justify-between gap-4"><dt class="text-zinc-500">Package ID</dt><dd class="font-mono text-zinc-900 truncate max-w-[190px]">${esc(app.packageId)}</dd></div>
+                  <div class="flex justify-between gap-4"><dt class="text-zinc-500">Version</dt><dd class="font-mono text-zinc-900">${esc(app.version)}</dd></div>
+                  <div class="flex justify-between gap-4"><dt class="text-zinc-500">Minimum OS</dt><dd class="font-medium text-zinc-900">${esc(app.minAndroid)}</dd></div>
+                  <div class="flex justify-between gap-4"><dt class="text-zinc-500">Developer</dt><dd class="font-medium text-zinc-900 truncate max-w-[190px]">${esc(app.developer)}</dd></div>
+                </dl>
+
+                ${app.apkSha256 ? `
+                  <div class="pt-5 border-t border-zinc-100 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-medium text-zinc-700">SHA-256 Checksum</span>
+                      <button id="copy-sha-btn" type="button" data-sha="${esc(app.apkSha256)}" class="text-xs font-medium text-emerald-700 hover:underline">Copy</button>
+                    </div>
+                    <p class="font-mono text-[11px] text-zinc-500 bg-zinc-50 border border-zinc-200 rounded-lg p-2.5 break-all">${esc(app.apkSha256)}</p>
+                  </div>
+                ` : ''}
+
+                <div class="pt-5 border-t border-zinc-100 text-xs text-zinc-500 leading-relaxed">
+                  <p class="font-medium text-zinc-700 mb-1">Android Installation Guide</p>
+                  <p>After downloading the APK file, open it from your Downloads folder and enable "Install unknown apps" for your browser if prompted.</p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDownloadsView() {
+      if (!state.user) {
+        return `
+          <div class="max-w-3xl mx-auto px-4 py-16 text-center">
+            <div class="bg-white border border-zinc-200 rounded-xl p-10">
+              <h1 class="text-2xl font-bold text-zinc-950">Sign in to view your downloads</h1>
+              <p class="text-sm text-zinc-600 mt-2 max-w-md mx-auto leading-relaxed">
+                Create an account or sign in with your email and password to keep a personal history of your downloaded Android APKs.
+              </p>
+              <button type="button" data-open-auth="signin" class="mt-6 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                Sign In
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      const publicApps = getPublicApps();
+      return `
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-zinc-200">
+            <div>
+              <h1 class="text-2xl sm:text-3xl font-bold text-zinc-950">My Downloads</h1>
+              <p class="text-sm text-zinc-600 mt-1">Private APK download log synced to your account.</p>
+            </div>
+            <span class="text-xs font-mono text-zinc-500">${state.downloadRecords.length} record(s)</span>
+          </div>
+
+          ${state.downloadRecords.length === 0 ? `
+            <div class="mt-8 bg-white border border-zinc-200 rounded-xl p-10 text-center">
+              <h2 class="text-base font-semibold text-zinc-950">No downloads recorded yet</h2>
+              <p class="text-sm text-zinc-600 mt-1">Download any app from the catalog and it will appear here.</p>
+              <button data-nav="catalog" type="button" class="mt-5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg">Browse Catalog</button>
+            </div>
+          ` : `
+            <div class="mt-6 bg-white border border-zinc-200 rounded-xl overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-zinc-200 text-xs font-medium text-zinc-500 bg-zinc-50/70">
+                      <th class="py-3 px-4">Application</th>
+                      <th class="py-3 px-4">Version</th>
+                      <th class="py-3 px-4">Downloaded</th>
+                      <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-100 text-sm">
+                    ${state.downloadRecords.map((rec) => {
+                      const matched = publicApps.find((a) => a.id === rec.appId);
+                      const dt = rec.downloadedAt && typeof rec.downloadedAt.toDate === 'function'
+                        ? rec.downloadedAt.toDate().toLocaleString()
+                        : 'Just now';
+                      return `
+                        <tr class="hover:bg-zinc-50/70">
+                          <td class="py-3.5 px-4 font-semibold text-zinc-950">${esc(rec.appName)}</td>
+                          <td class="py-3.5 px-4 font-mono text-xs text-zinc-600">v${esc(rec.version)}</td>
+                          <td class="py-3.5 px-4 text-xs text-zinc-500">${esc(dt)}</td>
+                          <td class="py-3.5 px-4 text-right space-x-3">
+                            ${matched ? `<button type="button" data-open-app="${esc(matched.id)}" class="text-xs font-semibold text-emerald-700 hover:underline">Open App</button>` : ''}
+                            <button type="button" data-delete-download="${esc(rec.id)}" class="text-xs font-medium text-zinc-500 hover:text-red-600">Remove</button>
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function renderAdminView() {
+      if (!state.isAdminUnlocked) return renderCatalogView();
+      const canWrite = isAuthorizedAdminUser();
+      const f = state.form;
+      const videoPreview = getVideoEmbedInfo(f.videoUrl);
+      const cloudinaryReady = Boolean(state.cloudinary.cloudName.trim() && state.cloudinary.uploadPreset.trim());
+
+      return `
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-zinc-200">
+            <div>
+              <h1 class="text-2xl sm:text-3xl font-bold text-zinc-950">Admin Panel</h1>
+              <p class="text-sm text-zinc-600 mt-1">Upload Android APKs, attach app demo videos, and manage published releases.</p>
+            </div>
+            <div class="inline-flex items-center gap-1 p-1 bg-zinc-100 rounded-lg">
+              <button type="button" data-admin-section="uploads" class="px-3.5 py-1.5 text-xs font-semibold rounded-md ${state.adminSection === 'uploads' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600'}">APK &amp; Video Uploads</button>
+              <button type="button" data-admin-section="deploy" class="px-3.5 py-1.5 text-xs font-semibold rounded-md ${state.adminSection === 'deploy' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600'}">GitHub &amp; Storage Guide</button>
+            </div>
+          </div>
+
+          ${!canWrite ? `
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-2 text-xs text-amber-950">
+              <p class="font-semibold text-sm">Enable Email/Password in Firebase Console to save releases</p>
+              <p>No email verification is needed. Enable <strong>Authentication &rarr; Sign-in method &rarr; Email/Password</strong> once in Firebase Console, then sign out and sign back in with <code class="font-mono">${esc(PRIMARY_ADMIN_EMAIL)}</code>.</p>
+              <a href="https://console.firebase.google.com/project/${FIREBASE_CONFIG.projectId}/authentication/providers" target="_blank" rel="noopener noreferrer" class="inline-block mt-1 px-3.5 py-2 font-semibold text-zinc-900 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50">
+                Open Firebase Auth Console &nearr;
+              </a>
+            </div>
+          ` : ''}
+
+          ${state.adminFeedback ? `
+            <div class="px-4 py-3 rounded-lg border text-sm flex items-center justify-between gap-4 ${
+              state.adminFeedback.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-red-50 border-red-200 text-red-800'
+            }">
+              <span>${esc(state.adminFeedback.text)}</span>
+              <button id="dismiss-feedback-btn" type="button" class="text-xs font-semibold underline shrink-0">Dismiss</button>
+            </div>
+          ` : ''}
+
+          ${state.adminSection === 'deploy' ? `
+            <div class="bg-white border border-zinc-200 rounded-xl p-6 space-y-5 text-sm text-zinc-700 leading-relaxed">
+              <h2 class="text-lg font-bold text-zinc-950">GitHub Pages &amp; Free Storage Guide</h2>
+              <ol class="list-decimal pl-5 space-y-3">
+                <li><strong>GitHub Pages Hosting (Free):</strong> Upload this single <code class="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">index.html</code> file to a public GitHub repository, open <strong>Settings &rarr; Pages</strong>, and select <strong>Deploy from a branch &rarr; main / root</strong>.</li>
+                <li><strong>GitHub Releases for Large APKs &amp; MP4 Videos (Up to 2 GB/file Free):</strong> Create a Release in any public GitHub repo, attach your <code class="font-mono">.apk</code> and <code class="font-mono">.mp4</code> files, then fetch them from the <em>APK &amp; Video Uploads</em> tab with 1 click.</li>
+                <li><strong>Cloudinary Unsigned Uploads:</strong> Create a free Cloudinary account, add an Unsigned Upload Preset, and enter your Cloud Name + Preset Name to upload Icons, Screenshots, and MP4 Videos directly from your browser.</li>
+                <li><strong>Firebase Authorized Domains:</strong> Add <code class="font-mono">&lt;your-username&gt;.github.io</code> under Firebase <strong>Authentication &rarr; Settings &rarr; Authorized domains</strong>.</li>
+              </ol>
+            </div>
+          ` : `
+            <!-- Storage Connector -->
+            <section class="bg-white border border-zinc-200 rounded-xl p-6 space-y-4">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 class="text-base font-bold text-zinc-950">APK &amp; Video Storage Connector</h2>
+                  <p class="text-xs text-zinc-500 mt-0.5">Import up to 2 GB APKs and MP4 videos from GitHub Releases, or upload media directly via Cloudinary.</p>
+                </div>
+                <div class="inline-flex items-center gap-1 p-1 bg-zinc-100 rounded-lg self-start">
+                  <button type="button" data-storage-tab="github" class="px-3 py-1.5 text-xs font-semibold rounded-md ${state.storageTab === 'github' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600'}">GitHub Releases</button>
+                  <button type="button" data-storage-tab="cloudinary" class="px-3 py-1.5 text-xs font-semibold rounded-md ${state.storageTab === 'cloudinary' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600'}">Cloudinary Upload</button>
+                </div>
+              </div>
+
+              ${state.storageTab === 'github' ? `
+                <div class="pt-2 border-t border-zinc-100 space-y-3">
+                  <div class="flex flex-col sm:flex-row gap-3">
+                    <input id="gh-repo-input" type="text" value="${esc(state.githubRepo)}" placeholder="username/droidvault-releases" class="flex-1 px-3.5 py-2 text-sm font-mono bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:border-emerald-600 focus:bg-white" />
+                    <button id="fetch-gh-btn" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-zinc-950 hover:bg-zinc-800 rounded-lg whitespace-nowrap">${state.fetchingGh ? 'Fetching...' : 'Fetch Releases'}</button>
+                  </div>
+                  ${state.ghError ? `<p class="text-xs text-red-600">${esc(state.ghError)}</p>` : ''}
+                  ${state.ghReleases.length > 0 ? `
+                    <div class="border border-zinc-200 rounded-lg divide-y divide-zinc-100 max-h-60 overflow-y-auto">
+                      ${state.ghReleases.map((rel, rIdx) => `
+                        <div class="p-3 space-y-2">
+                          <div class="text-xs font-semibold text-zinc-900">${esc(rel.name || rel.tag_name)} <span class="font-mono text-zinc-500">(${esc(rel.tag_name)})</span></div>
+                          <div class="flex flex-wrap gap-2">
+                            ${(rel.assets || []).map((asset, aIdx) => {
+                              const isVid = /\.(mp4|webm|mov|m4v)$/i.test(asset.name);
+                              return `
+                                <button type="button" data-gh-import="${rIdx}:${aIdx}" class="px-3 py-1.5 text-xs bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-300 rounded-md">
+                                  <span class="font-mono">${esc(asset.name)}</span>
+                                  <span class="text-zinc-500">(${formatBytes(asset.size)})</span>
+                                  <strong class="text-emerald-700 ml-1">${isVid ? 'Use Video' : 'Use APK'}</strong>
+                                </button>
+                              `;
+                            }).join('')}
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              ` : `
+                <div class="pt-2 border-t border-zinc-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Cloudinary Cloud Name</label>
+                    <input id="cloud-name-input" type="text" value="${esc(state.cloudinary.cloudName)}" placeholder="your-cloud-name" class="w-full px-3 py-2 text-sm font-mono bg-zinc-50 border border-zinc-200 rounded-lg" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Unsigned Upload Preset</label>
+                    <input id="cloud-preset-input" type="text" value="${esc(state.cloudinary.uploadPreset)}" placeholder="droidvault_unsigned" class="w-full px-3 py-2 text-sm font-mono bg-zinc-50 border border-zinc-200 rounded-lg" />
+                  </div>
+                </div>
+              `}
+            </section>
+
+            <!-- Upload Form + Live Releases -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <form id="release-form" class="lg:col-span-7 bg-white border border-zinc-200 rounded-xl p-6 space-y-5">
+                <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+                  <h2 class="text-base font-bold text-zinc-950">${state.editingId ? `Editing Release: ${esc(state.editingId)}` : 'Upload New APK & App Video'}</h2>
+                  ${state.editingId ? `<button id="cancel-edit-btn" type="button" class="text-xs font-medium text-zinc-600 hover:text-zinc-950">Cancel Edit</button>` : ''}
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">App Name *</label>
+                    <input name="name" required maxlength="120" value="${esc(f.name)}" placeholder="NoteSync Pro" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">Release ID *</label>
+                    <input name="id" required maxlength="128" ${state.editingId ? 'disabled' : ''} value="${esc(f.id)}" placeholder="notesync-pro" class="w-full px-3 py-2 text-sm font-mono border border-zinc-200 rounded-lg disabled:bg-zinc-100" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-zinc-700 mb-1">Short Tagline *</label>
+                  <input name="tagline" required maxlength="240" value="${esc(f.tagline)}" placeholder="Fast offline-first Android app." class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg" />
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">Version *</label>
+                    <input name="version" required maxlength="40" value="${esc(f.version)}" class="w-full px-3 py-2 text-sm font-mono border border-zinc-200 rounded-lg" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">Category</label>
+                    <select name="category" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white">
+                      ${CATEGORIES.filter((c) => c !== 'All').map((c) => `<option value="${esc(c)}" ${f.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">Min Android *</label>
+                    <input name="minAndroid" required maxlength="40" value="${esc(f.minAndroid)}" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">Package ID *</label>
+                    <input name="packageId" required maxlength="160" value="${esc(f.packageId)}" class="w-full px-3 py-2 text-sm font-mono border border-zinc-200 rounded-lg" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">Developer *</label>
+                    <input name="developer" required maxlength="120" value="${esc(f.developer)}" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg" />
+                  </div>
+                </div>
+
+                <!-- APK Section -->
+                <div class="pt-4 border-t border-zinc-100 space-y-3">
+                  <h3 class="text-xs font-semibold text-zinc-900">APK Package Download Link</h3>
+                  <div class="flex gap-2">
+                    <input name="apkUrl" required type="url" value="${esc(f.apkUrl)}" placeholder="https://github.com/user/repo/releases/download/v1.0.0/app.apk" class="flex-1 px-3 py-2 text-xs font-mono border border-zinc-200 rounded-lg" />
+                    <button type="button" data-convert-url="apkUrl:apk" class="px-3 py-2 text-xs font-medium bg-zinc-100 hover:bg-zinc-200 rounded-lg whitespace-nowrap">Convert</button>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                      <label class="block text-xs font-medium text-zinc-700 mb-1">APK File Name *</label>
+                      <input name="apkFileName" required maxlength="200" value="${esc(f.apkFileName)}" placeholder="MyApp-v1.0.0.apk" class="w-full px-3 py-2 text-xs font-mono border border-zinc-200 rounded-lg" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-zinc-700 mb-1">Size (MB)</label>
+                      <input name="apkSizeMb" type="number" step="0.1" min="0" max="2048" value="${f.apkSizeBytes ? (f.apkSizeBytes / (1024 * 1024)).toFixed(2) : ''}" placeholder="24.5" class="w-full px-3 py-2 text-xs font-mono border border-zinc-200 rounded-lg" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">SHA-256 Checksum (optional)</label>
+                    <input name="apkSha256" maxlength="128" value="${esc(f.apkSha256)}" class="w-full px-3 py-2 text-xs font-mono border border-zinc-200 rounded-lg" />
+                  </div>
+                </div>
+
+                <!-- App Demo Video Section -->
+                <div class="pt-4 border-t border-zinc-100 space-y-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-xs font-semibold text-zinc-900">App Demo Video (MP4, WebM, YouTube, or Google Drive)</h3>
+                    ${cloudinaryReady ? `
+                      <label class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer">
+                        Upload Video (MP4)
+                        <input id="upload-video-file" type="file" accept="video/mp4,video/webm,video/*" class="hidden" />
+                      </label>
+                    ` : `
+                      <button type="button" data-storage-tab="cloudinary" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">Enable Video Upload</button>
+                    `}
+                  </div>
+                  <div class="flex gap-2">
+                    <input name="videoUrl" value="${esc(f.videoUrl)}" placeholder="https://... (Direct MP4, GitHub Release .mp4, YouTube, or Google Drive)" class="flex-1 px-3 py-2 text-xs font-mono border border-zinc-200 rounded-lg" />
+                    <button type="button" data-convert-url="videoUrl:video" class="px-3 py-2 text-xs font-medium bg-zinc-100 hover:bg-zinc-200 rounded-lg whitespace-nowrap">Convert</button>
+                  </div>
+                  <input name="videoFileName" maxlength="200" value="${esc(f.videoFileName)}" placeholder="Video title or filename (optional)" class="w-full px-3 py-2 text-xs font-mono border border-zinc-200 rounded-lg" />
+                  ${videoPreview.type !== 'none' ? `
+                    <div class="aspect-video w-full rounded-lg overflow-hidden bg-zinc-950 border border-zinc-200">
+                      ${videoPreview.type === 'direct'
+                        ? `<video src="${esc(videoPreview.src)}" controls class="w-full h-full object-contain"></video>`
+                        : `<iframe src="${esc(videoPreview.src)}" class="w-full h-full border-0" allowfullscreen></iframe>`}
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Icon & Screenshots -->
+                <div class="pt-4 border-t border-zinc-100 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-semibold text-zinc-900">App Icon &amp; Screenshots (up to 4)</h3>
+                    ${cloudinaryReady ? `
+                      <label class="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg cursor-pointer">
+                        Upload Icon
+                        <input id="upload-icon-file" type="file" accept="image/*" class="hidden" />
+                      </label>
+                    ` : ''}
+                  </div>
+                  <input name="iconUrl" value="${esc(f.iconUrl)}" placeholder="App Icon HTTPS URL" class="w-full px-3 py-2 text-xs font-mono border border-zinc-200 rounded-lg" />
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    ${[0, 1, 2, 3].map((i) => `
+                      <input name="shot_${i}" value="${esc(f.screenshots[i] || '')}" placeholder="Screenshot ${i + 1} HTTPS URL" class="w-full px-3 py-1.5 text-xs font-mono border border-zinc-200 rounded-lg" />
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Description & Changelog -->
+                <div class="pt-4 border-t border-zinc-100 space-y-3">
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">Full Description</label>
+                    <textarea name="description" rows="3" maxlength="5000" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg">${esc(f.description)}</textarea>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-zinc-700 mb-1">What's New / Changelog</label>
+                    <textarea name="whatsNew" rows="2" maxlength="3000" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg">${esc(f.whatsNew)}</textarea>
+                  </div>
+                </div>
+
+                <div class="pt-4 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-4">
+                  <div class="flex items-center gap-5 text-xs font-medium text-zinc-700">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                      <input name="published" type="checkbox" ${f.published ? 'checked' : ''} /> Published publicly
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                      <input name="featured" type="checkbox" ${f.featured ? 'checked' : ''} /> Feature on homepage
+                    </label>
+                  </div>
+                  <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                    ${state.editingId ? 'Save Changes' : 'Publish Release'}
+                  </button>
+                </div>
+              </form>
+
+              <!-- Live Releases List -->
+              <section class="lg:col-span-5 bg-white border border-zinc-200 rounded-xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
+                  <h2 class="text-sm font-bold text-zinc-950">Published Releases (${state.firestoreApps.length})</h2>
+                  <span class="text-xs text-zinc-500">Live synced</span>
+                </div>
+                ${state.firestoreApps.length === 0 ? `
+                  <div class="p-8 text-center text-xs text-zinc-500">
+                    No releases saved yet. Fill the form on the left to publish your first APK &amp; App Video.
+                  </div>
+                ` : `
+                  <div class="divide-y divide-zinc-100">
+                    ${state.firestoreApps.map((app) => `
+                      <div class="p-4 flex items-start gap-3">
+                        ${renderAppAvatar(app, 'w-11 h-11 rounded-xl')}
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-semibold text-zinc-950 truncate">${esc(app.name)}</p>
+                            <span class="text-[11px] font-semibold ${app.published ? 'text-emerald-700' : 'text-amber-700'}">${app.published ? 'Published' : 'Draft'}</span>
+                          </div>
+                          <p class="text-xs font-mono text-zinc-500 mt-0.5 truncate">v${esc(app.version)} &middot; ${formatBytes(app.apkSizeBytes)}${app.videoUrl ? ' &middot; Video' : ''}</p>
+                          <div class="mt-2.5 flex flex-wrap items-center gap-3 text-xs">
+                            <button type="button" data-edit-app="${esc(app.id)}" class="font-medium text-zinc-700 hover:text-zinc-950">Edit</button>
+                            <button type="button" data-toggle-pub="${esc(app.id)}" class="font-medium text-zinc-700 hover:text-zinc-950">${app.published ? 'Unpublish' : 'Publish'}</button>
+                            <button type="button" data-feature-app="${esc(app.id)}" class="font-medium ${app.featured ? 'text-emerald-700' : 'text-zinc-600'}">${app.featured ? 'Featured' : 'Feature'}</button>
+                            ${state.confirmDeleteId === app.id ? `
+                              <button type="button" data-confirm-del="${esc(app.id)}" class="font-semibold text-red-600 ml-auto">Confirm Delete</button>
+                              <button type="button" data-cancel-del="1" class="text-zinc-500">Cancel</button>
+                            ` : `
+                              <button type="button" data-ask-del="${esc(app.id)}" class="text-zinc-400 hover:text-red-600 ml-auto">Delete</button>
+                            `}
+                          </div>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                `}
+              </section>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // Render & Event Binding
+    // =========================================================================
+    function render() {
+      updateHeader();
+      const root = document.getElementById('app-root');
+      if (state.page === 'detail') root.innerHTML = renderDetailView();
+      else if (state.page === 'downloads') root.innerHTML = renderDownloadsView();
+      else if (state.page === 'admin' && state.isAdminUnlocked) root.innerHTML = renderAdminView();
+      else root.innerHTML = renderCatalogView();
+      bindDynamicEvents();
+    }
+
+    function readFormIntoState() {
+      const formEl = document.getElementById('release-form');
+      if (!formEl) return;
+      const fd = new FormData(formEl);
+      const mb = parseFloat(String(fd.get('apkSizeMb') || '0')) || 0;
+      state.form = {
+        ...state.form,
+        id: state.editingId || String(fd.get('id') || '').trim(),
+        name: String(fd.get('name') || ''),
+        tagline: String(fd.get('tagline') || ''),
+        version: String(fd.get('version') || '1.0.0'),
+        category: String(fd.get('category') || 'Utilities'),
+        minAndroid: String(fd.get('minAndroid') || 'Android 10+'),
+        packageId: String(fd.get('packageId') || ''),
+        developer: String(fd.get('developer') || ''),
+        apkUrl: String(fd.get('apkUrl') || ''),
+        apkFileName: String(fd.get('apkFileName') || ''),
+        apkSizeBytes: Math.round(mb * 1024 * 1024),
+        apkSha256: String(fd.get('apkSha256') || ''),
+        videoUrl: String(fd.get('videoUrl') || ''),
+        videoFileName: String(fd.get('videoFileName') || ''),
+        iconUrl: String(fd.get('iconUrl') || ''),
+        screenshots: [0, 1, 2, 3].map((i) => String(fd.get(`shot_${i}`) || '')),
+        description: String(fd.get('description') || ''),
+        whatsNew: String(fd.get('whatsNew') || ''),
+        published: formEl.querySelector('input[name="published"]')?.checked ?? true,
+        featured: formEl.querySelector('input[name="featured"]')?.checked ?? false,
+      };
+    }
+
+    async function uploadCloudinaryFile(file, resourceType) {
+      const { cloudName, uploadPreset } = state.cloudinary;
+      if (!cloudName.trim() || !uploadPreset.trim()) {
+        throw new Error('Enter your Cloudinary Cloud Name and Unsigned Upload Preset first.');
+      }
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('upload_preset', uploadPreset.trim());
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName.trim())}/${resourceType}/upload`,
+        { method: 'POST', body: fd }
+      );
+      if (!res.ok) throw new Error('Cloudinary upload failed. Verify your Unsigned Upload Preset.');
+      const data = await res.json();
+      return String(data.secure_url || '');
+    }
+
+    function bindDynamicEvents() {
+      const root = document.getElementById('app-root');
+
+      root.querySelectorAll('[data-nav]').forEach((el) => {
+        el.addEventListener('click', () => navigate(el.getAttribute('data-nav')));
+      });
+      root.querySelectorAll('[data-open-auth]').forEach((el) => {
+        el.addEventListener('click', () => openAuthModal(el.getAttribute('data-open-auth')));
+      });
+      root.querySelectorAll('[data-open-app]').forEach((el) => {
+        el.addEventListener('click', () => navigate('detail', el.getAttribute('data-open-app')));
+      });
+      root.querySelectorAll('[data-download-app]').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = el.getAttribute('data-download-app');
+          const app = [...state.firestoreApps, ...getPublicApps()].find((a) => a.id === id);
+          if (app) void handleDownloadApk(app);
+        });
+      });
+      root.querySelectorAll('[data-cat]').forEach((el) => {
+        el.addEventListener('click', () => {
+          state.selectedCategory = el.getAttribute('data-cat');
+          render();
+        });
+      });
+
+      const searchInput = document.getElementById('catalog-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          state.searchQuery = e.target.value;
+          const cursor = e.target.selectionStart;
+          render();
+          const refreshed = document.getElementById('catalog-search');
+          if (refreshed) {
+            refreshed.focus();
+            refreshed.setSelectionRange(cursor, cursor);
+          }
+        });
+      }
+
+      document.getElementById('reset-filters-btn')?.addEventListener('click', () => {
+        state.searchQuery = '';
+        state.selectedCategory = 'All';
+        render();
+      });
+
+      root.querySelectorAll('[data-media-tab]').forEach((el) => {
+        el.addEventListener('click', () => {
+          state.detailMediaTab = el.getAttribute('data-media-tab');
+          render();
+        });
+      });
+      root.querySelectorAll('[data-shot-idx]').forEach((el) => {
+        el.addEventListener('click', () => {
+          state.detailShotIdx = Number(el.getAttribute('data-shot-idx')) || 0;
+          render();
+        });
+      });
+
+      document.getElementById('copy-sha-btn')?.addEventListener('click', async (e) => {
+        const sha = e.currentTarget.getAttribute('data-sha');
+        try {
+          await navigator.clipboard.writeText(sha);
+          e.currentTarget.textContent = 'Copied';
+          setTimeout(() => { e.currentTarget.textContent = 'Copy'; }, 2000);
+        } catch {}
+      });
+
+      root.querySelectorAll('[data-delete-download]').forEach((el) => {
+        el.addEventListener('click', async () => {
+          if (!state.user) return;
+          const id = el.getAttribute('data-delete-download');
+          try {
+            await deleteDoc(doc(db, 'users', state.user.uid, 'downloads', id));
+          } catch (err) {
+            showToast('Could not remove record.');
+          }
+        });
+      });
+
+      // Admin Studio bindings
+      root.querySelectorAll('[data-admin-section]').forEach((el) => {
+        el.addEventListener('click', () => {
+          readFormIntoState();
+          state.adminSection = el.getAttribute('data-admin-section');
+          render();
+        });
+      });
+      root.querySelectorAll('[data-storage-tab]').forEach((el) => {
+        el.addEventListener('click', () => {
+          readFormIntoState();
+          state.storageTab = el.getAttribute('data-storage-tab');
+          render();
+        });
+      });
+      document.getElementById('dismiss-feedback-btn')?.addEventListener('click', () => {
+        state.adminFeedback = null;
+        render();
+      });
+
+      document.getElementById('cloud-name-input')?.addEventListener('input', (e) => {
+        state.cloudinary.cloudName = e.target.value;
+        localStorage.setItem(CLOUDINARY_KEY, JSON.stringify(state.cloudinary));
+      });
+      document.getElementById('cloud-preset-input')?.addEventListener('input', (e) => {
+        state.cloudinary.uploadPreset = e.target.value;
+        localStorage.setItem(CLOUDINARY_KEY, JSON.stringify(state.cloudinary));
+      });
+
+      document.getElementById('fetch-gh-btn')?.addEventListener('click', async () => {
+        readFormIntoState();
+        const raw = document.getElementById('gh-repo-input').value;
+        const slug = normalizeRepoSlug(raw);
+        if (!slug) {
+          state.ghError = 'Enter a repository slug such as username/my-android-apps.';
+          render();
+          return;
+        }
+        state.githubRepo = slug;
+        localStorage.setItem(GH_REPO_KEY, slug);
+        state.fetchingGh = true;
+        state.ghError = '';
+        render();
+        try {
+          const res = await fetch(`https://api.github.com/repos/${slug}/releases?per_page=15`, {
+            headers: { Accept: 'application/vnd.github+json' },
+          });
+          if (!res.ok) throw new Error(`GitHub returned ${res.status}. Verify the public repository name.`);
+          const data = await res.json();
+          state.ghReleases = Array.isArray(data) ? data : [];
+          if (state.ghReleases.length === 0) state.ghError = 'No published releases found in this repository.';
+        } catch (err) {
+          state.ghError = err.message || 'Failed to fetch GitHub Releases.';
+        } finally {
+          state.fetchingGh = false;
+          render();
+        }
+      });
+
+      root.querySelectorAll('[data-gh-import]').forEach((el) => {
+        el.addEventListener('click', () => {
+          readFormIntoState();
+          const [rIdx, aIdx] = el.getAttribute('data-gh-import').split(':').map(Number);
+          const rel = state.ghReleases[rIdx];
+          const asset = rel && rel.assets ? rel.assets[aIdx] : null;
+          if (!asset) return;
+          if (/\.(mp4|webm|mov|m4v)$/i.test(asset.name)) {
+            state.form.videoUrl = asset.browser_download_url;
+            state.form.videoFileName = asset.name.slice(0, 200);
+            state.adminFeedback = { type: 'success', text: `Imported app video ${asset.name}.` };
+          } else {
+            const guessed = state.form.name || rel.name || asset.name.replace(/\.apk$/i, '');
+            state.form.name = state.form.name || guessed;
+            state.form.id = state.form.id || slugifyAppId(guessed);
+            state.form.version = (rel.tag_name || '1.0.0').replace(/^v/i, '');
+            state.form.apkUrl = asset.browser_download_url;
+            state.form.apkFileName = asset.name;
+            state.form.apkSizeBytes = asset.size;
+            state.form.storageProvider = 'github-releases';
+            state.form.githubRepo = state.githubRepo;
+            state.adminFeedback = { type: 'success', text: `Imported APK ${asset.name} (${formatBytes(asset.size)}).` };
+          }
+          render();
+        });
+      });
+
+      root.querySelectorAll('[data-convert-url]').forEach((el) => {
+        el.addEventListener('click', () => {
+          readFormIntoState();
+          const [field, kind] = el.getAttribute('data-convert-url').split(':');
+          const { url, detectedProvider } = normalizeDirectUrl(state.form[field], kind);
+          state.form[field] = url;
+          if (field === 'apkUrl' && detectedProvider) state.form.storageProvider = detectedProvider;
+          render();
+        });
+      });
+
+      document.getElementById('upload-video-file')?.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        readFormIntoState();
+        showToast(`Uploading ${file.name}...`);
+        try {
+          const url = await uploadCloudinaryFile(file, 'video');
+          state.form.videoUrl = url;
+          state.form.videoFileName = file.name.slice(0, 200);
+          state.adminFeedback = { type: 'success', text: `Uploaded video ${file.name}.` };
+        } catch (err) {
+          state.adminFeedback = { type: 'error', text: err.message };
+        }
+        render();
+      });
+
+      document.getElementById('upload-icon-file')?.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        readFormIntoState();
+        showToast(`Uploading ${file.name}...`);
+        try {
+          state.form.iconUrl = await uploadCloudinaryFile(file, 'image');
+          state.adminFeedback = { type: 'success', text: `Uploaded icon ${file.name}.` };
+        } catch (err) {
+          state.adminFeedback = { type: 'error', text: err.message };
+        }
+        render();
+      });
+
+      document.getElementById('cancel-edit-btn')?.addEventListener('click', () => {
+        state.editingId = null;
+        state.form = createEmptyForm();
+        render();
+      });
+
+      document.getElementById('release-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        readFormIntoState();
+        if (!isAuthorizedAdminUser() || !state.user) {
+          state.adminFeedback = {
+            type: 'error',
+            text: `Enable Authentication → Sign-in method → Email/Password in Firebase Console, then sign in again with ${PRIMARY_ADMIN_EMAIL}.`,
+          };
+          render();
+          return;
+        }
+
+        const f = state.form;
+        const cleanId = slugifyAppId(f.id || f.name);
+        const normApk = normalizeDirectUrl(f.apkUrl, 'apk');
+        const normIcon = normalizeDirectUrl(f.iconUrl, 'image');
+        const normVideo = normalizeDirectUrl(f.videoUrl, 'video');
+        if (!safeHttps(normApk.url)) {
+          state.adminFeedback = { type: 'error', text: 'APK Download URL must start with https://' };
+          render();
+          return;
+        }
+
+        const cleanShots = (f.screenshots || [])
+          .map((s) => safeHttps(normalizeDirectUrl(s, 'image').url))
+          .filter(Boolean)
+          .slice(0, 4);
+
+        const payload = {
+          id: cleanId,
+          name: f.name.trim().slice(0, 120),
+          tagline: f.tagline.trim().slice(0, 240),
+          description: f.description.trim().slice(0, 5000),
+          whatsNew: f.whatsNew.trim().slice(0, 3000),
+          version: f.version.trim().slice(0, 40),
+          packageId: f.packageId.trim().slice(0, 160),
+          category: f.category.trim().slice(0, 80),
+          minAndroid: f.minAndroid.trim().slice(0, 40),
+          developer: f.developer.trim().slice(0, 120),
+          iconUrl: safeHttps(normIcon.url).slice(0, 2048),
+          apkUrl: safeHttps(normApk.url).slice(0, 2048),
+          apkFileName: f.apkFileName.trim().slice(0, 200),
+          apkSizeBytes: Math.max(0, Math.min(2147483648, Math.round(Number(f.apkSizeBytes) || 0))),
+          apkSha256: f.apkSha256.trim().slice(0, 128),
+          screenshots: cleanShots,
+          videoUrl: safeHttps(normVideo.url).slice(0, 2048),
+          videoFileName: f.videoFileName.trim().slice(0, 200),
+          featured: Boolean(f.featured),
+          published: Boolean(f.published),
+          storageProvider: ['github-releases', 'cloudinary', 'cloud-link', 'google-drive'].includes(f.storageProvider)
+            ? f.storageProvider
+            : 'cloud-link',
+          ...(f.githubRepo ? { githubRepo: normalizeRepoSlug(f.githubRepo) } : {}),
+        };
+
+        try {
+          if (state.editingId) {
+            await updateDoc(doc(db, 'apps', state.editingId), {
+              ...payload,
+              updatedAt: serverTimestamp(),
+            });
+            state.adminFeedback = { type: 'success', text: `Updated "${payload.name}" (v${payload.version}).` };
+          } else {
+            await setDoc(doc(db, 'apps', cleanId), {
+              ...payload,
+              downloads: 0,
+              ownerUid: state.user.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+            state.adminFeedback = { type: 'success', text: `Published "${payload.name}" (v${payload.version}).` };
+          }
+          state.editingId = null;
+          state.form = createEmptyForm();
+        } catch (err) {
+          state.adminFeedback = { type: 'error', text: err.message || 'Failed to save release.' };
+        }
+        render();
+      });
+
+      root.querySelectorAll('[data-edit-app]').forEach((el) => {
+        el.addEventListener('click', () => {
+          const app = state.firestoreApps.find((a) => a.id === el.getAttribute('data-edit-app'));
+          if (!app) return;
+          const shots = [...(app.screenshots || [])];
+          while (shots.length < 4) shots.push('');
+          state.editingId = app.id;
+          state.form = { ...app, screenshots: shots.slice(0, 4) };
+          state.adminFeedback = null;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          render();
+        });
+      });
+
+      root.querySelectorAll('[data-toggle-pub]').forEach((el) => {
+        el.addEventListener('click', async () => {
+          const app = state.firestoreApps.find((a) => a.id === el.getAttribute('data-toggle-pub'));
+          if (!app || !isAuthorizedAdminUser()) return;
+          await updateDoc(doc(db, 'apps', app.id), { published: !app.published, updatedAt: serverTimestamp() });
+        });
+      });
+
+      root.querySelectorAll('[data-feature-app]').forEach((el) => {
+        el.addEventListener('click', async () => {
+          const id = el.getAttribute('data-feature-app');
+          if (!isAuthorizedAdminUser()) return;
+          const batch = writeBatch(db);
+          state.firestoreApps.forEach((a) => {
+            if (a.id === id || a.featured) {
+              batch.update(doc(db, 'apps', a.id), { featured: a.id === id, updatedAt: serverTimestamp() });
+            }
+          });
+          await batch.commit();
+        });
+      });
+
+      root.querySelectorAll('[data-ask-del]').forEach((el) => {
+        el.addEventListener('click', () => {
+          state.confirmDeleteId = el.getAttribute('data-ask-del');
+          render();
+        });
+      });
+      root.querySelectorAll('[data-cancel-del]').forEach((el) => {
+        el.addEventListener('click', () => {
+          state.confirmDeleteId = null;
+          render();
+        });
+      });
+      root.querySelectorAll('[data-confirm-del]').forEach((el) => {
+        el.addEventListener('click', async () => {
+          const id = el.getAttribute('data-confirm-del');
+          if (!isAuthorizedAdminUser()) return;
+          await deleteDoc(doc(db, 'apps', id));
+          state.confirmDeleteId = null;
+          if (state.editingId === id) {
+            state.editingId = null;
+            state.form = createEmptyForm();
+          }
+          state.adminFeedback = { type: 'success', text: 'Release deleted.' };
+          render();
+        });
+      });
+    }
+
+    // =========================================================================
+    // Global Event Listeners & Boot
+    // =========================================================================
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+    document.getElementById('brand-btn').addEventListener('click', () => navigate('catalog'));
+    document.getElementById('admin-nav-btn').addEventListener('click', () => navigate('admin'));
+    document.getElementById('signin-open-btn').addEventListener('click', () => openAuthModal('signin'));
+    document.getElementById('auth-close-btn').addEventListener('click', closeAuthModal);
+    document.getElementById('auth-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'auth-modal') closeAuthModal();
+    });
+    document.getElementById('mode-signin-btn').addEventListener('click', () => {
+      state.authMode = 'signin';
+      syncAuthModalMode();
+    });
+    document.getElementById('mode-signup-btn').addEventListener('click', () => {
+      state.authMode = 'signup';
+      syncAuthModalMode();
+    });
+    document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
+
+    document.getElementById('account-menu-btn').addEventListener('click', () => {
+      document.getElementById('account-dropdown').classList.toggle('hidden');
+    });
+    document.getElementById('signout-btn').addEventListener('click', async () => {
+      persistAdminUnlock(false);
+      document.getElementById('account-dropdown').classList.add('hidden');
+      try { await signOut(auth); } catch {}
+      if (state.page === 'admin') navigate('catalog');
+      else render();
+    });
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      document.getElementById('mobile-drawer').classList.toggle('hidden');
+    });
+    document.querySelectorAll('header [data-nav], footer [data-nav]').forEach((btn) => {
+      btn.addEventListener('click', () => navigate(btn.getAttribute('data-nav')));
+    });
+
+    window.addEventListener('hashchange', () => {
+      const parsed = parseHash();
+      state.page = parsed.page;
+      state.selectedAppId = parsed.appId;
+      render();
+    });
+
+    const initialRoute = parseHash();
+    state.page = initialRoute.page;
+    state.selectedAppId = initialRoute.appId;
+    render();
+
+    onAuthStateChanged(auth, async (firebaseUser) => {
+      state.user = firebaseUser;
+      state.authReady = true;
+      if (firebaseUser) await syncUserProfileDoc(firebaseUser);
+      subscribeApps();
+      subscribeDownloads();
+      render();
+    });
+  </script>
+</body>
 </html>
