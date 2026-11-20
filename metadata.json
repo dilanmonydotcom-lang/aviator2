@@ -1,0 +1,6 @@
+{
+  "name": "DroidVault — Android App Hub",
+  "description": "GitHub Pages-ready Android APK showcase and direct download portal powered by GitHub Releases storage, Cloudinary media uploads, and Firebase Firestore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

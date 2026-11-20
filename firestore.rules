@@ -1,0 +1,282 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ---------------------------------------------------------
+    // Global Hardened Primitives
+    // ---------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Supports verified accounts and Email/Password accounts without requiring inbox verification
+    function isAuthenticatedAccount() {
+      return isSignedIn() && (
+        request.auth.token.email_verified == true ||
+        request.auth.token.firebase.sign_in_provider == 'password'
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() && (
+        (
+          request.auth.token.firebase.sign_in_provider == 'password' &&
+          request.auth.token.email == 'dilanaviator13@gmail.com'
+        ) ||
+        (
+          request.auth.token.email_verified == true &&
+          (
+            request.auth.token.email == 'dilanaviator13@gmail.com' ||
+            request.auth.token.email == 'dilanytwon@gmail.com'
+          )
+        )
+      );
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() ||
+        (isAuthenticatedAccount() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidOptionalUrl(val) {
+      return val is string && val.size() <= 2048 && (
+        val == '' ||
+        val.matches('^https://.*') ||
+        val.matches('^\\./src/assets/.*') ||
+        val.matches('^/src/assets/.*') ||
+        val.matches('^\\./assets/.*') ||
+        val.matches('^/assets/.*')
+      );
+    }
+
+    function isValidScreenshotsList(shots) {
+      return shots is list &&
+        shots.size() <= 4 &&
+        (shots.size() == 0 || isValidOptionalUrl(shots[0])) &&
+        (shots.size() <= 1 || isValidOptionalUrl(shots[1])) &&
+        (shots.size() <= 2 || isValidOptionalUrl(shots[2])) &&
+        (shots.size() <= 3 || isValidOptionalUrl(shots[3]));
+    }
+
+    function isValidAppRelease(data, docId) {
+      return data.keys().hasAll([
+          'id', 'name', 'tagline', 'description', 'whatsNew', 'version',
+          'packageId', 'category', 'minAndroid', 'developer', 'iconUrl',
+          'apkUrl', 'apkFileName', 'apkSizeBytes', 'apkSha256', 'screenshots',
+          'videoUrl', 'videoFileName', 'downloads', 'featured', 'published',
+          'storageProvider', 'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'name', 'tagline', 'description', 'whatsNew', 'version',
+          'packageId', 'category', 'minAndroid', 'developer', 'iconUrl',
+          'apkUrl', 'apkFileName', 'apkSizeBytes', 'apkSha256', 'screenshots',
+          'videoUrl', 'videoFileName', 'downloads', 'featured', 'published',
+          'storageProvider', 'githubRepo', 'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.id) && data.id == docId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        data.tagline is string && data.tagline.size() >= 1 && data.tagline.size() <= 240 &&
+        data.description is string && data.description.size() <= 5000 &&
+        data.whatsNew is string && data.whatsNew.size() <= 3000 &&
+        data.version is string && data.version.size() >= 1 && data.version.size() <= 40 &&
+        data.packageId is string && data.packageId.size() >= 1 && data.packageId.size() <= 160 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 80 &&
+        data.minAndroid is string && data.minAndroid.size() >= 1 && data.minAndroid.size() <= 40 &&
+        data.developer is string && data.developer.size() >= 1 && data.developer.size() <= 120 &&
+        isValidOptionalUrl(data.iconUrl) &&
+        data.apkUrl is string && data.apkUrl.size() >= 1 && data.apkUrl.size() <= 2048 &&
+        isValidOptionalUrl(data.apkUrl) &&
+        data.apkFileName is string && data.apkFileName.size() >= 1 && data.apkFileName.size() <= 200 &&
+        data.apkSizeBytes is number && data.apkSizeBytes >= 0 && data.apkSizeBytes <= 2147483648 &&
+        data.apkSha256 is string && data.apkSha256.size() <= 128 &&
+        isValidScreenshotsList(data.screenshots) &&
+        isValidOptionalUrl(data.videoUrl) &&
+        data.videoFileName is string && data.videoFileName.size() <= 200 &&
+        data.downloads is number && data.downloads >= 0 && data.downloads <= 1000000000 &&
+        data.featured is bool &&
+        data.published is bool &&
+        data.storageProvider in ['github-releases', 'cloudinary', 'cloud-link', 'google-drive'] &&
+        (!('githubRepo' in data) || (data.githubRepo is string && data.githubRepo.size() <= 160)) &&
+        isValidId(data.ownerUid) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'role', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'email', 'role', 'createdAt', 'updatedAt']) &&
+        isValidId(data.uid) && data.uid == userId &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+        data.role == 'user' &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidDownloadRecord(data, userId) {
+      return data.keys().hasAll(['userId', 'appId', 'appName', 'version', 'downloadedAt']) &&
+        data.keys().hasOnly(['userId', 'appId', 'appName', 'version', 'downloadedAt']) &&
+        isValidId(data.userId) && data.userId == userId &&
+        isValidId(data.appId) &&
+        data.appName is string && data.appName.size() >= 1 && data.appName.size() <= 120 &&
+        data.version is string && data.version.size() >= 1 && data.version.size() <= 40 &&
+        data.downloadedAt is timestamp;
+    }
+
+    function isValidAdminRecord(data, adminUid) {
+      return data.keys().hasAll(['uid', 'email', 'grantedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'grantedAt']) &&
+        isValidId(data.uid) && data.uid == adminUid &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+        data.grantedAt is timestamp;
+    }
+
+    // ---------------------------------------------------------
+    // /apps/{appId} — Public Android App Releases Catalog
+    // ---------------------------------------------------------
+    match /apps/{appId} {
+      allow get: if isValidId(appId) && (existing().published == true || isAdmin());
+      // Zero get()/exists() in list query; enforces published == true or bootstrapped admin
+      allow list: if resource.data.published == true || isBootstrappedAdmin();
+
+      allow create: if isAuthenticatedAccount() &&
+        isValidId(appId) &&
+        isValidAppRelease(incoming(), appId) &&
+        incoming().ownerUid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+
+      allow update: if isAuthenticatedAccount() &&
+        isValidId(appId) &&
+        isValidAppRelease(incoming(), appId) &&
+        incoming().id == existing().id &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt &&
+        (
+          // Action 1: Admin full metadata/media/featured update
+          (
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name', 'tagline', 'description', 'whatsNew', 'version',
+              'packageId', 'category', 'minAndroid', 'developer', 'iconUrl',
+              'apkUrl', 'apkFileName', 'apkSizeBytes', 'apkSha256', 'screenshots',
+              'videoUrl', 'videoFileName', 'featured', 'published',
+              'storageProvider', 'githubRepo', 'updatedAt'
+            ]) &&
+            isAdmin()
+          ) ||
+          // Action 2: Authenticated member atomic download count increment (+1 only)
+          (
+            existing().published == true &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['downloads']) &&
+            incoming().downloads == existing().downloads + 1
+          )
+        );
+
+      allow delete: if isAuthenticatedAccount() && isValidId(appId) && isAdmin();
+    }
+
+    // ---------------------------------------------------------
+    // /users/{userId} — Private Member Profiles (PII Isolated)
+    // ---------------------------------------------------------
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isAuthenticatedAccount() && (isOwner(userId) || isAdmin());
+      allow list: if isBootstrappedAdmin();
+
+      allow create: if isAuthenticatedAccount() &&
+        isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().email == request.auth.token.email &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isAuthenticatedAccount() &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().uid == existing().uid &&
+        incoming().email == existing().email &&
+        incoming().role == existing().role &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          // Action 1: Owner updates their own displayName
+          (
+            isOwner(userId) &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'updatedAt'])
+          ) ||
+          // Action 2: Admin override
+          (
+            isAdmin() &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isAuthenticatedAccount() && isValidId(userId) && (isOwner(userId) || isAdmin());
+
+      // ---------------------------------------------------------
+      // /users/{userId}/downloads/{downloadId} — Download History
+      // ---------------------------------------------------------
+      match /downloads/{downloadId} {
+        allow get: if isValidId(userId) && isValidId(downloadId) && isAuthenticatedAccount() && (isOwner(userId) || isAdmin());
+        allow list: if isAuthenticatedAccount() && (resource.data.userId == request.auth.uid || isBootstrappedAdmin());
+
+        allow create: if isAuthenticatedAccount() &&
+          isOwner(userId) &&
+          isValidId(userId) &&
+          isValidId(downloadId) &&
+          isValidDownloadRecord(incoming(), userId) &&
+          incoming().downloadedAt == request.time &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          exists(/databases/$(database)/documents/apps/$(incoming().appId));
+
+        allow update: if false;
+        allow delete: if isAuthenticatedAccount() && isValidId(userId) && isValidId(downloadId) && (isOwner(userId) || isAdmin());
+      }
+    }
+
+    // ---------------------------------------------------------
+    // /admins/{adminUid} — Trusted Admin Allowlist
+    // ---------------------------------------------------------
+    match /admins/{adminUid} {
+      allow get: if isValidId(adminUid) && isAuthenticatedAccount() && (isOwner(adminUid) || isBootstrappedAdmin());
+      allow list: if isBootstrappedAdmin();
+
+      allow create: if isBootstrappedAdmin() &&
+        isValidId(adminUid) &&
+        isValidAdminRecord(incoming(), adminUid) &&
+        incoming().grantedAt == request.time;
+
+      allow update: if isBootstrappedAdmin() &&
+        isValidId(adminUid) &&
+        isValidAdminRecord(incoming(), adminUid) &&
+        incoming().uid == existing().uid &&
+        incoming().grantedAt == existing().grantedAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['email']);
+
+      allow delete: if isBootstrappedAdmin() && isValidId(adminUid);
+    }
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "entities": {
+    "AppRelease": {
+      "title": "AppRelease",
+      "description": "Published Android APK release with metadata, GitHub Releases or cloud storage links, up to 4 screenshots, and optional promo video.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique document ID for the Android release."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Display name of the Android application."
+        },
+        "tagline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "description": "Short summary shown below the app title."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Full application overview and feature details."
+        },
+        "whatsNew": {
+          "type": "string",
+          "maxLength": 3000,
+          "description": "Changelog and release notes for this version."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Semantic version string (e.g. 2.4.0)."
+        },
+        "packageId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Android application package identifier."
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Application category label."
+        },
+        "minAndroid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Minimum supported Android OS version."
+        },
+        "developer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Developer or studio name."
+        },
+        "iconUrl": {
+          "type": "string",
+          "maxLength": 2048,
+          "description": "HTTPS or relative URL to the app icon."
+        },
+        "apkUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "description": "Direct HTTPS download URL for the Android APK file."
+        },
+        "apkFileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Original APK file name."
+        },
+        "apkSizeBytes": {
+          "type": "number",
+          "description": "File size of the APK in bytes."
+        },
+        "apkSha256": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Optional SHA-256 verification checksum."
+        },
+        "screenshots": {
+          "type": "array",
+          "description": "Up to 4 screenshot URLs (max 4 entries)."
+        },
+        "videoUrl": {
+          "type": "string",
+          "maxLength": 2048,
+          "description": "Optional promo video URL (YouTube, Google Drive preview, or direct MP4)."
+        },
+        "videoFileName": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional display filename for the promo video."
+        },
+        "downloads": {
+          "type": "number",
+          "description": "Total download count."
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Whether this release is the primary featured app on the storefront."
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Whether this release is publicly visible on the storefront."
+        },
+        "storageProvider": {
+          "type": "string",
+          "enum": ["github-releases", "cloudinary", "cloud-link", "google-drive"],
+          "description": "Static-friendly cloud storage provider hosting the APK and media assets."
+        },
+        "githubRepo": {
+          "type": "string",
+          "maxLength": 160,
+          "description": "Optional GitHub repository slug (owner/repo) when hosted on GitHub Releases."
+        },
+        "ownerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase UID of the admin who published the release."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the release was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the release was last updated."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "tagline",
+        "description",
+        "whatsNew",
+        "version",
+        "packageId",
+        "category",
+        "minAndroid",
+        "developer",
+        "iconUrl",
+        "apkUrl",
+        "apkFileName",
+        "apkSizeBytes",
+        "apkSha256",
+        "screenshots",
+        "videoUrl",
+        "videoFileName",
+        "downloads",
+        "featured",
+        "published",
+        "storageProvider",
+        "ownerUid",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private member account profile containing PII (email) restricted to the owner and admins.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID matching the document ID."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Member display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200,
+          "description": "Verified member email address (PII)."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["user"],
+          "description": "Member role (always 'user'; admin privileges are isolated in /admins)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was last updated."
+        }
+      },
+      "required": ["uid", "displayName", "email", "role", "createdAt", "updatedAt"]
+    },
+    "DownloadRecord": {
+      "title": "DownloadRecord",
+      "description": "Per-user download history entry stored in a subcollection under /users/{userId}/downloads.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Owner Firebase Auth UID."
+        },
+        "appId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Referenced AppRelease document ID."
+        },
+        "appName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Snapshot of the downloaded app name."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Snapshot of the downloaded app version."
+        },
+        "downloadedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the download."
+        }
+      },
+      "required": ["userId", "appId", "appName", "version", "downloadedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted admin allowlist document managed exclusively by the bootstrapped project owner.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Admin Firebase UID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200,
+          "description": "Admin email address."
+        },
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when admin access was granted."
+        }
+      },
+      "required": ["uid", "email", "grantedAt"]
+    }
+  },
+  "firestore": {
+    "/apps/{appId}": {
+      "schema": { "$ref": "#/entities/AppRelease" },
+      "description": "Public catalog of published Android APK releases."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user profiles isolated by owner UID and admin access."
+    },
+    "/users/{userId}/downloads/{downloadId}": {
+      "schema": { "$ref": "#/entities/DownloadRecord" },
+      "description": "User download history subcollection gated by parent user profile existence."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Trusted admin allowlist documents."
+    }
+  }
+}
